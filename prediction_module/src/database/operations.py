@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import text
 
-from database.connection import engine
+from ..database.connection import engine
 
 def load_data():
     tabela = "dados_enem_consolidado"

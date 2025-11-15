@@ -1,29 +1,32 @@
 import pandas as pd
 import numpy as np
+import joblib
 from sklearn.preprocessing import LabelEncoder
 
-
-from database.operations import load_data, saveData_BD
+from ..database.operations import load_data, saveData_BD
 
 def preprocess_data(df: pd.DataFrame, categorizar_colunas=True):
-    df = removerColunas(df) 
+    df = removerColunas(df)
     df = tratarDadosFaltantes(df)
 
     encoders = {}
     if categorizar_colunas:
         df = categorizar_nota(df)
         df, encoders = codificarVariaveisCategoricas(df)
-    
+
     # Preencher NaNs restantes com -1 (para algoritmos que não aceitam NaN)
     df.fillna(-1, inplace=True)
-    
+
+    # with open("prediction_module/src/saved_model/encoders.pkl", "wb") as f:
+    #     joblib.dump(encoders, f)
+
     return df, encoders
 
 
 def removerColunas(df):
     colunas_remover = [
-        "NU_INSCRICAO", 
-        "CO_PROVA_CH", "CO_PROVA_CN" , "CO_PROVA_LC", "CO_PROVA_MT", 
+        "NU_INSCRICAO",
+        "CO_PROVA_CH", "CO_PROVA_CN" , "CO_PROVA_LC", "CO_PROVA_MT",
         "NU_NOTA_COMP1", "NU_NOTA_COMP2", "NU_NOTA_COMP3", "NU_NOTA_COMP4", "NU_NOTA_COMP5",
         "TP_STATUS_REDACAO", "TP_ST_CONCLUSAO",
         "TP_PRESENCA_MT", "TP_PRESENCA_LC", "TP_PRESENCA_CN", "TP_PRESENCA_CH",
@@ -39,13 +42,13 @@ def tratarDadosFaltantes(df):
     colunas_notas = ["NU_NOTA_CH","NU_NOTA_CN","NU_NOTA_LC","NU_NOTA_MT","NU_NOTA_REDACAO"]
     for col in colunas_notas:
         if col in df.columns:
-            df[col] = df[col].replace(-1, np.nan)  
+            df[col] = df[col].replace(-1, np.nan)
 
     # Colunas q comecam com NO_ e categóricas
     no_cols = [c for c in df.columns if c.startswith("NO_") and df[c].dtype == "object"]
     for col in no_cols:
             df[col] = df[col].fillna("ND").astype(str)
-    
+
     # Outras categóricas
     cat_cols = df.select_dtypes(include=['object']).columns.tolist()
     for col in cat_cols:
@@ -86,7 +89,7 @@ def codificarVariaveisCategoricas(df):
 
 
 if __name__ == "__main__":
-    # Select dados 
+    # Select dados
     df = load_data()
 
     # Pré-processar
@@ -98,9 +101,3 @@ if __name__ == "__main__":
     print("Dados processados com sucesso!")
     print(df_processado.head(30))
     print(df_processado.describe())
-
-  
-
-
-
-
